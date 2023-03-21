@@ -3,8 +3,6 @@
 #include <Display.h>
 #include <DelayedAction.h>
 
-using namespace std;
-
 auto sniffer = SoftwareSerial(5, 6); // 5 - TX, 6 - RX
 auto button = Button(3);
 auto display = Display();
