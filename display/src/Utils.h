@@ -1,6 +1,6 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-using runable = void (*)();
+using supplier = void (*)(byte);
 
 #endif

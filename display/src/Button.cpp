@@ -3,18 +3,13 @@
 Button::Button(int pin){
     pinMode(pin, INPUT_PULLUP);
     this->PIN = pin;
-    this->lastPressed = millis();;
-    this->clickListener = []() { Serial.println("OnClick"); };
-    this->longClickListener = []() { Serial.println("OnLongClick"); };
+    this->lastPressed = millis();
 }
 
-void Button::setOnClickListener(runable listener) {
+void Button::setOnClickListener(supplier listener) {
     this->clickListener = listener;
 }
 
-void Button::setOnLongClickListener(runable listener) {
-    this->longClickListener = listener;
-}
 int state = HIGH;
 
 void Button::loop() {    
@@ -26,9 +21,9 @@ void Button::loop() {
     } else {
         unsigned long now = millis();
         if (now - lastPressed < 300) {
-            clickListener();
+            clickListener(SHORT_CLICK);
         } else {
-            longClickListener();
+            clickListener(LONG_CLICK);
         }
     }
 }

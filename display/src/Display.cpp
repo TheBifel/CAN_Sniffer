@@ -6,6 +6,7 @@ Display::Display() {
     // On an arduino UNO:       A4(SDA), A5(SCL)
     this->screen = Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
     this->isOnVal = true;
+    this->scheduledTurnOff = NULL_TIME;
 }
 
 void Display::setup() {
@@ -15,6 +16,16 @@ void Display::setup() {
     Serial.println("SSD1306 allocation succes!");
   }
   screen.clearDisplay();
+}
+
+void Display::loop() {
+    if (scheduledTurnOff != NULL_TIME) {
+        if (scheduledTurnOff < millis()) {
+            turnOff();
+            scheduledTurnOff = NULL_TIME;
+        }
+        
+    }
 }
 
 bool Display::isOn() {
@@ -28,7 +39,16 @@ void Display::turnOn() {
 
 void Display::turnOff() {
     this->isOnVal = false;
+    this->scheduledTurnOff = NULL_TIME;
     screen.ssd1306_command(SSD1306_DISPLAYOFF);
+}
+
+void Display::scheduleTurnOff(unsigned int delay) {
+    this->scheduledTurnOff = millis() + delay;
+}
+
+void Display::cancelTurnOff() {
+    this->scheduledTurnOff = NULL_TIME;
 }
 
 #define LOGO_HEIGHT 32
@@ -49,6 +69,7 @@ static const unsigned char PROGMEM logo_bmw[] = {
 
 void Display::drawTemp(String temp) {
     screen.clearDisplay();
+    screen.setCursor(0, 0);
     screen.cp437(true);
     screen.setTextColor(WHITE);
     screen.setTextSize(3);
