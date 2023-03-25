@@ -37,17 +37,20 @@ void setup() {
   display.drawLogo();
   display.scheduleTurnOff(30000);
 }
+
 void loop() {
   button.loop();
   display.loop();
 
   if (sniffer.available()) {
-    String read = sniffer.readString();
+    String read = sniffer.readStringUntil('\n');
+    Serial.println(read);
     if (read.startsWith("CT")) {
       String temp = read.substring(3); // CT=75 -> 75
       temp.trim();
       display.drawTemp(temp);
+      Serial.println("Sycle");
     }
-  }     
+  }
 }
 
