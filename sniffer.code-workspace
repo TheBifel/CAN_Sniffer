@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": "sniffer"
+		},
+		{
+			"name": "display",
+			"path": "display"
+		},
+		{
+			"name": "sniffer esp",
+			"path": "sniffer esp"
+		}
+	],
+	"settings": {}
+}
