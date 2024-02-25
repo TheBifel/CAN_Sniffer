@@ -1,60 +1,76 @@
-#include <Arduino.h>
-#include <SPI.h>
-#include <Wire.h>
-#include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h>
+#include <SoftwareSerial.h>
+#include <Button.h>
+#include <Display.h>
 
-#define SCREEN_WIDTH 128 // OLED display width, in pixels
-#define SCREEN_HEIGHT 64 // OLED display height, in pixels
-#define OLED_RESET -1       // Reset pin # (or -1 if sharing Arduino reset pin)
-#define SCREEN_ADDRESS 0x3C ///< See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32
-
-#define LOGO_HEIGHT 32
-#define LOGO_WIDTH 32
-static const unsigned char PROGMEM logo_bmw[] = {
-    0x00, 0x0f, 0xe0, 0x00, 0x00, 0x7f, 0xfc, 0x00, 0x00, 0xff, 0xff, 0x00, 0x03, 0xe0, 0x07, 0xc0,
-    0x07, 0x80, 0x01, 0xe0, 0x0e, 0x00, 0x00, 0x70, 0x1c, 0x00, 0x00, 0x30, 0x18, 0x0f, 0x00, 0x38,
-    0x38, 0x3f, 0x00, 0x1c, 0x30, 0x7f, 0x00, 0x0c, 0x70, 0xff, 0x00, 0x0e, 0x60, 0xff, 0x00, 0x06,
-    0xe1, 0xff, 0x00, 0x06, 0xe1, 0xff, 0x00, 0x07, 0xe1, 0xff, 0x00, 0x07, 0xe1, 0xff, 0x00, 0x07,
-    0xe0, 0x00, 0xff, 0x87, 0xe0, 0x00, 0xff, 0x87, 0xe0, 0x00, 0xff, 0x87, 0x60, 0x00, 0xff, 0x86,
-    0x60, 0x00, 0xff, 0x06, 0x70, 0x00, 0xfe, 0x0e, 0x30, 0x00, 0xfe, 0x0c, 0x38, 0x00, 0xf8, 0x1c,
-    0x18, 0x00, 0xf0, 0x38, 0x1c, 0x00, 0x00, 0x70, 0x0e, 0x00, 0x00, 0xe0, 0x07, 0x80, 0x01, 0xc0,
-    0x03, 0xe0, 0x0f, 0x80, 0x00, 0xff, 0xff, 0x00, 0x00, 0x3f, 0xfc, 0x00, 0x00, 0x07, 0xe0, 0x00};
-
-auto screen = Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+auto sniffer = SoftwareSerial(5, 6); // 5 - TX, 6 - RX
+auto button = Button(A0);
+auto display = Display();
+boolean isInteracted = false;
 
 void setup() {
+  display.setup();
   Serial.begin(9600);
+  sniffer.begin(9600);
 
-   if (!screen.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
-    Serial.println("SSD1306 allocation failed!");
-  } else {
-    Serial.println("SSD1306 allocation succes!");
-  }
-  screen.clearDisplay();
+  button.setOnClickListener([](byte type) {
+    display.cancelTurnOff();
+    isInteracted = true;
+    if (type == SHORT_CLICK) {
+      if (display.isOn()) {
+        Serial.println("OnClick - turnOff");
+        display.turnOff();
+      }
+      else {
+        Serial.println("OnClick - turnOn");
+        display.turnOn();
+        display.scheduleTurnOff(4000);
+      }
+    } else if (type == LONG_CLICK) {
+      if (display.isOn()) {
+        display.turnOff();
+        Serial.println("OnLongClick - turnOff");
+      } else {
+        Serial.println("OnLongClick - turnOn");
+        display.turnOn();
+      }
+    } else if (type == LONG_CLICK_FEEDBACK) {
+      if (!display.isOn()) {
+        Serial.println("OnLongClickFeedback");
+        display.turnOn();
+        display.drawLogo();
+        delay(50);
+        display.turnOff();
+      }
+    } 
+    
+  });
 
+  display.drawLogo();
 }
 
 void loop() {
-  int analog = analogRead(A0);
-  Serial.println(analog);
+  button.loop();
+  display.loop();
 
-  if (analog > 500) {
-      screen.clearDisplay();
-        screen.drawBitmap(
-        (screen.width() - LOGO_WIDTH) / 2,
-        (screen.height() - LOGO_HEIGHT) / 2,
-        logo_bmw,
-        LOGO_WIDTH,
-        LOGO_HEIGHT,
-        1
-    );
-    screen.display();
-  } else {
-    screen.clearDisplay();
+  // if (sniffer.available()) {
+  if (Serial.available()) {
+    // String read = sniffer.readStringUntil('\n');
+    String read = Serial.readStringUntil('\n');
+    Serial.println(read);
+    if (read.startsWith("CT")) {
+      String data = read.substring(3); // CT=75 -> 75
+      data.trim();
+      display.drawTemp(data);
+      Serial.println("Sycle");
+      
+      if (!isInteracted) {
+        int temp = data.toInt();
+        if (temp > 60) {
+          display.turnOff();
+          isInteracted = true;
+        }
+      }
+      
+    }
   }
-  delay(50);
 }
-
-
-
