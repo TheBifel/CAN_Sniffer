@@ -19,7 +19,7 @@ void Button::loop() {
         newState = LOW;    
     } else {
         newState = HIGH;
-    }
+    }    
 
     unsigned long now = millis();
     if (newState == state) {
@@ -35,10 +35,14 @@ void Button::loop() {
     if (state == LOW) {
         lastPressed = millis();
     } else {
-        if (now - lastPressed < LONG_CLICK_DURATION) {
+        int diff = now - lastPressed;
+        if (diff < LONG_CLICK_DURATION) {
             clickListener(SHORT_CLICK);
-        } else {
+        } else if (diff < LOOONG_CLICK_DURATION) {
             clickListener(LONG_CLICK);
+        } else  {
+            clickListener(LOOONG_CLICK);
         }
+        
     }
 }

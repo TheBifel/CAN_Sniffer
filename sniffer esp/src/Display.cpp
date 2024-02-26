@@ -7,6 +7,9 @@ Display::Display() {
     this->screen = Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
     this->isOnVal = true;
     this->scheduledTurnOff = NULL_TIME;
+    this->temp = "";
+    this->runTime = 0;
+    this->page = PAGE_TEMP;
 }
 
 void Display::setup() {
@@ -40,6 +43,7 @@ void Display::turnOn() {
 void Display::turnOff() {
     this->isOnVal = false;
     this->scheduledTurnOff = NULL_TIME;
+    this->page = PAGE_TEMP;
     screen.ssd1306_command(SSD1306_DISPLAYOFF);
 }
 
@@ -86,6 +90,26 @@ void Display::drawTemp(String temp) {
     screen.display();
 }
 
+void Display::drawRunTime(unsigned long time) {
+    screen.clearDisplay();
+    screen.setCursor(0, 0);
+    screen.cp437(true);
+    screen.setTextColor(WHITE);
+    screen.setTextSize(3);
+
+    String hours = String(time / 3600000);
+
+    unsigned int len = hours.length();
+    screen.setCursor(
+        (SCREEN_WIDTH - (len + 1) * chWidth - chWidth / 2) / 2,
+        (SCREEN_HEIGHT - chHeight) / 2
+    );
+
+    screen.print(hours);
+    screen.print("h");
+    screen.display();
+}
+
 void Display::drawLogo() {
     screen.clearDisplay();
     screen.drawBitmap(
@@ -97,4 +121,30 @@ void Display::drawLogo() {
         1
     );
     screen.display();
+}
+
+
+void Display::draw() {
+    Serial.println("draw");
+    if (this->page == PAGE_TEMP) {
+        drawTemp(this->temp);
+    } else if (this->page == PAGE_RUN_TIME) {
+        drawRunTime(this->runTime);
+    } 
+}
+
+void Display::setTemp(String temp) {
+    this->temp = temp;
+}
+
+void Display::setRunTime(unsigned long time) {
+    this->runTime = time;
+}
+
+void Display::nextPage() {
+    if (this->page == PAGE_TEMP) {
+        this->page = PAGE_RUN_TIME;
+    } else {
+        this->page = PAGE_TEMP;
+    }
 }

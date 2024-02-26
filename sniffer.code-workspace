@@ -12,5 +12,9 @@
 			"path": "sniffer esp"
 		}
 	],
-	"settings": {}
+	"settings": {
+		"files.associations": {
+			"*.tcc": "cpp"
+		}
+	}
 }

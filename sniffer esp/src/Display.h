@@ -14,12 +14,23 @@
 
 #define NULL_TIME 0
 
+
+#define PAGE_TEMP 0
+#define PAGE_RUN_TIME 1
+
 class Display {
 private:
     Adafruit_SSD1306 screen;
     bool isOnVal;
     unsigned long scheduledTurnOff;
+    unsigned long runTime;
+    String temp;
+    void drawTemp(String temp);
+    void drawRunTime(unsigned long time);
+
 public:
+    int page;
+
     Display();
     void setup();
     void loop();
@@ -30,7 +41,10 @@ public:
     void scheduleTurnOff(unsigned int delay);
     void cancelTurnOff();
 
-    void drawTemp(String temp);
+    void draw();
+    void setTemp(String temp);
+    void setRunTime(unsigned long time);
+    void nextPage();
     void drawLogo();
 };
 

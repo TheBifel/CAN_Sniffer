@@ -6,9 +6,11 @@
 
 #define SHORT_CLICK 0
 #define LONG_CLICK 1
-#define LONG_CLICK_FEEDBACK 2
+#define LOOONG_CLICK 2
+#define LONG_CLICK_FEEDBACK 3
 
-#define LONG_CLICK_DURATION 400
+#define LONG_CLICK_DURATION 300
+#define LOOONG_CLICK_DURATION 5000
 
 class Button {
 private:
