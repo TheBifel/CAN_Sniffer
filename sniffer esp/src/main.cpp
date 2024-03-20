@@ -4,7 +4,7 @@
 #include <Timer.h>
 #include <EEPROM.h>
 
-auto sniffer = SoftwareSerial(5, 6); // 5 - TX, 6 - RX
+auto sniffer = SoftwareSerial(15, 13); // RX, TX
 auto button = Button(A0);
 auto display = Display();
 auto timer = Timer();
@@ -75,10 +75,10 @@ void loop() {
   button.loop();
   display.loop();
 
-  // if (sniffer.available()) {
-  if (Serial.available()) {
-    // String read = sniffer.readStringUntil('\n');
-    String read = Serial.readStringUntil('\n');
+  if (sniffer.available()) {
+  // if (Serial.available()) {
+    String read = sniffer.readStringUntil('\n');
+    // String read = Serial.readStringUntil('\n');
     Serial.println(read);
     if (read.startsWith("CT")) {
       String data = read.substring(3); // CT=75 -> 75
