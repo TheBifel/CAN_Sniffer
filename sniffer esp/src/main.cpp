@@ -88,9 +88,9 @@ void loop() {
       int temp = data.toInt();
       Serial.println("Sycle");
       
-      if (temp >= 93) {
+      if (temp >= 98) {
         display.turnOn();
-
+        isInteracted = true;
       }
 
       if (!isInteracted) {
