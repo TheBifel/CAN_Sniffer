@@ -8,7 +8,8 @@ Display::Display() {
     this->isOnVal = true;
     this->scheduledTurnOff = NULL_TIME;
     this->temp = "";
-    this->runTime = 0;
+    this->batteryVoltage = "--.-";
+    this->runTimeSeconds = 0;
     this->page = PAGE_TEMP;
 }
 
@@ -22,12 +23,9 @@ void Display::setup() {
 }
 
 void Display::loop() {
-    if (scheduledTurnOff != NULL_TIME) {
-        if (scheduledTurnOff < millis()) {
-            turnOff();
-            scheduledTurnOff = NULL_TIME;
-        }
-        
+    if (scheduledTurnOff != NULL_TIME && (long)(millis() - scheduledTurnOff) >= 0) {
+        turnOff();
+        scheduledTurnOff = NULL_TIME;
     }
 }
 
@@ -68,46 +66,36 @@ static const unsigned char PROGMEM logo_bmw[] = {
     0x18, 0x00, 0xf0, 0x38, 0x1c, 0x00, 0x00, 0x70, 0x0e, 0x00, 0x00, 0xe0, 0x07, 0x80, 0x01, 0xc0,
     0x03, 0xe0, 0x0f, 0x80, 0x00, 0xff, 0xff, 0x00, 0x00, 0x3f, 0xfc, 0x00, 0x00, 0x07, 0xe0, 0x00};
 
-#define chWidth 18
-#define chHeight 24
-
-void Display::drawTemp(String temp) {
+void Display::drawCenteredText(const String& text) {
     screen.clearDisplay();
     screen.setCursor(0, 0);
     screen.cp437(true);
     screen.setTextColor(WHITE);
     screen.setTextSize(3);
 
-    unsigned int len = temp.length();
+    int16_t x1;
+    int16_t y1;
+    uint16_t width;
+    uint16_t height;
+    screen.getTextBounds(text, 0, 0, &x1, &y1, &width, &height);
     screen.setCursor(
-        (SCREEN_WIDTH - (len + 1) * chWidth - chWidth / 2) / 2,
-        (SCREEN_HEIGHT - chHeight) / 2
+        (SCREEN_WIDTH - width) / 2 - x1,
+        (SCREEN_HEIGHT - height) / 2 - y1
     );
-
-    screen.print(temp);
-    screen.write(248);
-    screen.print("C");
+    screen.print(text);
     screen.display();
 }
 
-void Display::drawRunTime(unsigned long time) {
-    screen.clearDisplay();
-    screen.setCursor(0, 0);
-    screen.cp437(true);
-    screen.setTextColor(WHITE);
-    screen.setTextSize(3);
+void Display::drawTemp(String temp) {
+    drawCenteredText(temp + String((char)248) + "C");
+}
 
-    String hours = String(time / 3600000);
+void Display::drawRunTime(unsigned long timeSeconds) {
+    drawCenteredText(String(timeSeconds / 3600UL) + "h");
+}
 
-    unsigned int len = hours.length();
-    screen.setCursor(
-        (SCREEN_WIDTH - (len + 1) * chWidth - chWidth / 2) / 2,
-        (SCREEN_HEIGHT - chHeight) / 2
-    );
-
-    screen.print(hours);
-    screen.print("h");
-    screen.display();
+void Display::drawBatteryVoltage(String voltage) {
+    drawCenteredText(voltage + "V");
 }
 
 void Display::drawLogo() {
@@ -129,21 +117,29 @@ void Display::draw() {
     if (this->page == PAGE_TEMP) {
         drawTemp(this->temp);
     } else if (this->page == PAGE_RUN_TIME) {
-        drawRunTime(this->runTime);
-    } 
+        drawRunTime(this->runTimeSeconds);
+    } else if (this->page == PAGE_BATTERY) {
+        drawBatteryVoltage(this->batteryVoltage);
+    }
 }
 
 void Display::setTemp(String temp) {
     this->temp = temp;
 }
 
-void Display::setRunTime(unsigned long time) {
-    this->runTime = time;
+void Display::setRunTime(unsigned long timeSeconds) {
+    this->runTimeSeconds = timeSeconds;
+}
+
+void Display::setBatteryVoltage(String voltage) {
+    this->batteryVoltage = voltage;
 }
 
 void Display::nextPage() {
     if (this->page == PAGE_TEMP) {
         this->page = PAGE_RUN_TIME;
+    } else if (this->page == PAGE_RUN_TIME) {
+        this->page = PAGE_BATTERY;
     } else {
         this->page = PAGE_TEMP;
     }

@@ -2,27 +2,21 @@
 #include <Button.h>
 #include <Display.h>
 #include <Timer.h>
-#include <EEPROM.h>
 
 auto sniffer = SoftwareSerial(15, 13); // RX, TX
 auto button = Button(A0);
 auto display = Display();
 auto timer = Timer();
 boolean isInteracted = false;
-
-void updateTimer() {
-  timer.loop();
-  display.setRunTime(timer.time);
-}
+unsigned long lastRuntimeHours = 0;
 
 void setup() {
-  display.setup();
   Serial.begin(9600);
+  display.setup();
   sniffer.begin(9600);
-
-  timer1_attachInterrupt(updateTimer);
-  timer1_write(3600000);  // ~ 10 second interval
-  timer1_enable(TIM_DIV256, TIM_EDGE, TIM_LOOP);
+  timer.setup();
+  display.setRunTime(timer.runTimeSeconds);
+  lastRuntimeHours = timer.runTimeSeconds / 3600UL;
 
   button.setOnClickListener([](byte type) {
     display.cancelTurnOff();
@@ -52,7 +46,7 @@ void setup() {
         if (display.page == PAGE_RUN_TIME) {
           Serial.println("reset timer");
           timer.reset();
-          display.setRunTime(timer.time);
+          display.setRunTime(timer.runTimeSeconds);
           display.draw();
         }
       }
@@ -74,13 +68,23 @@ void setup() {
 void loop() {
   button.loop();
   display.loop();
+  timer.loop();
+
+  unsigned long runtimeHours = timer.runTimeSeconds / 3600UL;
+  if (runtimeHours != lastRuntimeHours) {
+    lastRuntimeHours = runtimeHours;
+    display.setRunTime(timer.runTimeSeconds);
+    if (display.isOn() && display.page == PAGE_RUN_TIME) {
+      display.draw();
+    }
+  }
 
   if (sniffer.available()) {
   // if (Serial.available()) {
     String read = sniffer.readStringUntil('\n');
     // String read = Serial.readStringUntil('\n');
     Serial.println(read);
-    if (read.startsWith("CT")) {
+    if (read.startsWith("CT=")) {
       String data = read.substring(3); // CT=75 -> 75
       data.trim();
       display.setTemp(data);
@@ -100,6 +104,13 @@ void loop() {
         }
       }
       
+    } else if (read.startsWith("BV=")) {
+      String data = read.substring(3); // BV=12.2 -> 12.2
+      data.trim();
+      display.setBatteryVoltage(data);
+      if (display.isOn() && display.page == PAGE_BATTERY) {
+        display.draw();
+      }
     }
   }
 

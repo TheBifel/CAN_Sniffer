@@ -2,23 +2,22 @@
 #define TIMER_H
 
 #include "Arduino.h"
-#include "Utils.h"
 #include "EEPROM.h"
-
-const unsigned int E_ADDR = 0;  // Address in EEPROM to store the delay
-const unsigned int E_SIZE = sizeof(unsigned long);
 
 class Timer {
 private:
-    unsigned long lastUpdate;
+    unsigned long lastTickMillis;
+    unsigned long bufferedMillis;
+    unsigned long unsavedSeconds;
 
     void saveToEEPROM();
     void readFromEEPROM();
 public:
-    unsigned long time;
+    unsigned long runTimeSeconds;
 
     Timer();
 
+    void setup();
     void loop();
     void reset();
 };

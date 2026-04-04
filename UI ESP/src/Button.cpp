@@ -1,7 +1,7 @@
 #include "Button.h"
 
 Button::Button(int pin){
-    pinMode(pin, INPUT_PULLUP);
+    pinMode(pin, INPUT);
     this->PIN = pin;
     this->lastPressed = millis();
 }

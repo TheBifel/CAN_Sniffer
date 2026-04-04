@@ -1,15 +1,12 @@
 {
 	"folders": [
 		{
-			"path": "sniffer"
+			"name": "sniffer arduino",
+			"path": "sniffer arduino"
 		},
 		{
-			"name": "display",
-			"path": "display"
-		},
-		{
-			"name": "sniffer esp",
-			"path": "sniffer esp"
+			"name": "UI ESP",
+			"path": "UI ESP"
 		}
 	],
 	"settings": {

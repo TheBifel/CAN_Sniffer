@@ -5,6 +5,7 @@
 
 
 const int COOLANT_TEMP_ID = 0x1D0;
+const int BATTERY_STATUS_ID = 0x3B4;
 
 #define CAN_INT 2 // Set INT to pin 2
 MCP_CAN bus(10);  // Set CS to pin 10
@@ -13,6 +14,18 @@ SoftwareSerial display(5, 6); // 5 - TX, 6 - RX
 long unsigned int rxId;
 unsigned char len = 0;
 unsigned char rxBuf[8];
+
+String formatBatteryVoltage(const unsigned char* data, unsigned char dataLen) {
+  if (dataLen < 2) {
+    return "";
+  }
+
+  // BMW encodes the battery voltage in the lower 12 bits of the first word.
+  unsigned int raw = ((unsigned int)data[1] << 8) | data[0];
+  unsigned int tenths = (((raw & 0x0FFF) * 10U) + 34U) / 68U;
+
+  return String(tenths / 10U) + "." + String(tenths % 10U);
+}
 
 void setup() {
   Serial.begin(9600);
@@ -39,6 +52,14 @@ void loop() {
       Serial.println(toSend);
       display.println(toSend);
       display.flush();
+    } else if (rxId == BATTERY_STATUS_ID) {
+      String voltage = formatBatteryVoltage(rxBuf, len);
+      if (voltage.length() > 0) {
+        String toSend = "BV=" + voltage;
+        Serial.println(toSend);
+        display.println(toSend);
+        display.flush();
+      }
     }
   }
 }
