@@ -14,7 +14,7 @@ int state = HIGH;
 
 void Button::loop() {    
     int read = analogRead(PIN);
-    Serial.println("button read: " + String(read));
+    // Serial.println("button read: " + String(read));
     int newState;
     if (read > 900) {
         newState = LOW;    

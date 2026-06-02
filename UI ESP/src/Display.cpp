@@ -14,10 +14,11 @@ Display::Display() {
 }
 
 void Display::setup() {
+  Wire.begin(OLED_SDA, OLED_SCL);
   if (!screen.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
     Serial.println("SSD1306 allocation failed!");
   } else {
-    Serial.println("SSD1306 allocation succes!");
+    Serial.println("SSD1306 allocation success!");
   }
   screen.clearDisplay();
 }

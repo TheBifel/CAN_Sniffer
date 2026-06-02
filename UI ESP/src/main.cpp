@@ -3,7 +3,7 @@
 #include <Display.h>
 #include <Timer.h>
 
-auto sniffer = SoftwareSerial(15, 13); // RX, TX
+auto sniffer = SoftwareSerial(13, 12); // D7/GPIO13 RX, D6/GPIO12 TX
 auto button = Button(A0);
 auto display = Display();
 auto timer = Timer();
