@@ -13,7 +13,7 @@ namespace {
     const unsigned int E_ADDR_PRIMARY = 0;
     const unsigned int E_ADDR_BACKUP = sizeof(TimerStorage);
     const unsigned int E_SIZE = sizeof(TimerStorage) * 2;
-    const unsigned long SAVE_INTERVAL_SECONDS = 15UL * 60UL;
+    const unsigned long SAVE_INTERVAL_SECONDS = 1UL * 60UL; //1 minute
 
     unsigned long calculateChecksum(const TimerStorage& storage) {
         return storage.magic ^ storage.runTimeSeconds ^ storage.invertedRunTimeSeconds ^ TIMER_STORAGE_SALT;
